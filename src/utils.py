@@ -4,6 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 
+data_augmentation = tf.keras.Sequential([
+    tf.keras.layers.RandomFlip("horizontal"),
+    tf.keras.layers.RandomRotation(0.05),   # was 0.1
+    tf.keras.layers.RandomZoom(0.05),       # was 0.1
+    # tf.keras.layers.RandomContrast(0.1),  # turned off
+], name="data_augmentation")
 
 def get_model(type: str, img_height=128, img_width=128, class_count=2):
     input_tensor = tf.keras.Input(shape=(img_height, img_width, 3))
@@ -19,7 +25,7 @@ def get_model(type: str, img_height=128, img_width=128, class_count=2):
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         output = tf.keras.layers.Dense(1, activation='sigmoid')(x)
 
-        model = tf.keras.Model(inputs=base_model.input, outputs=output)
+        model = tf.keras.Model(inputs=input_tensor, outputs=output)
 
     # Resnet50 transfer learning with imagenet weights
     elif type == "resnet_transfer_frozen":
@@ -53,6 +59,30 @@ def get_model(type: str, img_height=128, img_width=128, class_count=2):
         output = tf.keras.layers.Dense(1, activation='sigmoid')(x)
 
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
+
+    elif type == "resnet-baseline-augmentation":
+        x = data_augmentation(input_tensor)
+        base_model = tf.keras.applications.ResNet50(weights=None,
+                                                    include_top=False,
+                                                    input_tensor=x)
+        x = base_model.output
+        x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
+        output = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+
+        model = tf.keras.Model(inputs=input_tensor, outputs=output)
+
+    elif type == "resnet-baseline-dropout":
+        base_model = tf.keras.applications.ResNet50(weights=None,
+                                                    include_top=False,
+                                                    input_tensor=input_tensor)
+        x = base_model.output
+        x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        x = tf.keras.layers.Dropout(0.3)(x)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
+        output = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+
+        model = tf.keras.Model(inputs=input_tensor, outputs=output)
 
     return model
 

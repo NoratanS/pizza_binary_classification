@@ -7,13 +7,14 @@ from src.utils import get_model, plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 from PIL import Image
 
-task = Task.init(project_name='pizza_binary_classification', task_name='baseline-resnet-batch-128', output_uri=True)
+
+task = Task.init(project_name='pizza_binary_classification', task_name='resnet-baseline-augmentation-less-aggressive', output_uri=True)
 logger = task.get_logger()
 
 data = Dataset.get(dataset_id='c653d71c5fc64dc4965e09c442b2bae3').get_local_copy()
 
 params = {
-    'batch_size': 128,
+    'batch_size': 16,
     'img_height': 128,
     'img_width': 128,
     'epochs': 20
@@ -43,8 +44,12 @@ class_names = train_ds.class_names
 class_count = len(class_names)
 print(class_names)
 
+# normalize data
+train_ds = train_ds.map(lambda x, y: (tf.keras.applications.resnet50.preprocess_input(x), y))
+val_ds = val_ds.map(lambda x, y: (tf.keras.applications.resnet50.preprocess_input(x), y))
+
 # Choosing a model
-model = get_model('baseline-Resnet50',
+model = get_model('resnet-baseline-augmentation',
                   img_height=params['img_height'],
                   img_width=params['img_width'],
                   class_count=class_count)
@@ -93,8 +98,8 @@ cm = confusion_matrix(y_true, y_pred)
 plot_confusion_matrix(cm, class_names)
 
 # Save cm image and send to clearml
-plt.savefig("baseline_resnet_batch-128_confusion_matrix.png")
-image = Image.open("baseline_resnet_batch-128_confusion_matrix.png")
+plt.savefig("resnet_baseline_augmentation_less_aggressive_confusion_matrix.png")
+image = Image.open("resnet_baseline_augmentation_less_aggressive_confusion_matrix.png")
 logger.report_image("Confusion Matrix", "val", iteration=0, image=image)
 plt.close()
 
