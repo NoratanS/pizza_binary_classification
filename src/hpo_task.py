@@ -9,7 +9,15 @@ from clearml import Task, Dataset
 from src.utils import get_model, plot_confusion_matrix
 
 # Task init
-task = Task.init(project_name='pizza_binary_classification', task_name='hpo_train_task_v2', output_uri=True)
+task = Task.init(
+    project_name='pizza_binary_classification',
+    task_name='hpo_train_task_v4',
+    output_uri=True,
+    repo='https://github.com/NoratanS/pizza_binary_classification.git',
+    branch='main',
+    script='src/hpo_task.py',
+    working_directory='.'
+)
 task.set_task_type(Task.TaskTypes.training)
 task.set_script(__file__)
 

@@ -2,10 +2,10 @@ from clearml import Task
 from clearml.automation import HyperParameterOptimizer, DiscreteParameterRange, UniformParameterRange
 
 # Task init
-task = Task.init(project_name="pizza_binary_classification", task_name="HPO Launcher", task_type=Task.TaskTypes.optimizer)
+task = Task.init(project_name="pizza_binary_classification", task_name="hpo_launcher_v2", task_type=Task.TaskTypes.optimizer)
 
 # Base task
-base_task = Task.get_task(project_name="pizza_binary_classification", task_name="hpo_train_task")
+base_task = Task.get_task(project_name="pizza_binary_classification", task_name="hpo_train_task_v4")
 
 # Configuration
 optimizer = HyperParameterOptimizer(
