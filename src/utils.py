@@ -11,7 +11,73 @@ data_augmentation = tf.keras.Sequential([
     # tf.keras.layers.RandomContrast(0.1),  # turned off
 ], name="data_augmentation")
 
-def get_model(type: str, img_height=128, img_width=128, class_count=2):
+
+def get_model(model_name: str,
+              img_height=128,
+              img_width=128,
+              class_count=2,
+              use_pretrained=False,
+              freeze_base=True,
+              use_dropout=False,
+              dropout_rate=0.3,
+              use_augmentation=False):
+    from tensorflow.keras import Input, Model
+    from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
+    from tensorflow.keras import Sequential
+    from tensorflow.keras.layers import RandomFlip, RandomRotation, RandomZoom
+
+    # Available models
+    model_map = {
+        "resnet50": tf.keras.applications.ResNet50,
+        "resnet101": tf.keras.applications.ResNet101,
+        "vgg16": tf.keras.applications.VGG16,
+        "inceptionv3": tf.keras.applications.InceptionV3,
+        "mobilenet": tf.keras.applications.MobileNet
+    }
+
+    if model_name not in model_map:
+        raise ValueError(f"Nieznany model: {model_name}")
+
+    BaseModel = model_map[model_name]
+
+    # Input
+    input_tensor = Input(shape=(img_height, img_width, 3))
+
+    # Augmentation (if active)
+    x = input_tensor
+    if use_augmentation:
+        data_augmentation = Sequential([
+            RandomFlip("horizontal"),
+            RandomRotation(0.05),
+            RandomZoom(0.05)
+        ], name="data_augmentation")
+        x = data_augmentation(x)
+
+    # Init model
+    weights = 'imagenet' if use_pretrained else None
+    base_model = BaseModel(weights=weights, include_top=False, input_tensor=x)
+
+    # Freeze weights (if TL and freeze=True)
+    if use_pretrained and freeze_base:
+        base_model.trainable = False
+    else:
+        base_model.trainable = True
+
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+
+    # Dropout
+    if use_dropout:
+        x = Dropout(dropout_rate)(x)
+
+    x = Dense(128, activation='relu')(x)
+    output = Dense(1, activation='sigmoid')(x)  # binary classification
+
+    model = Model(inputs=input_tensor, outputs=output)
+    return model
+
+
+def get_model_legacy(type: str, img_height=128, img_width=128, class_count=2):
     input_tensor = tf.keras.Input(shape=(img_height, img_width, 3))
     model = None
 

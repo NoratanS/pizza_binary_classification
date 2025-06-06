@@ -7,7 +7,7 @@ from src.utils import get_model, plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 from PIL import Image
 
-task = Task.init(project_name='pizza_binary_classification', task_name='baseline-resnet-batch-128', output_uri=True)
+task = Task.init(project_name='pizza_binary_classification', task_name='baseline-mobilenet', output_uri=True)
 logger = task.get_logger()
 
 data = Dataset.get(dataset_id='c653d71c5fc64dc4965e09c442b2bae3').get_local_copy()
@@ -44,7 +44,7 @@ class_count = len(class_names)
 print(class_names)
 
 # Choosing a model
-model = get_model('baseline-Resnet50',
+model = get_model('mobilenet',
                   img_height=params['img_height'],
                   img_width=params['img_width'],
                   class_count=class_count)
@@ -93,9 +93,9 @@ cm = confusion_matrix(y_true, y_pred)
 plot_confusion_matrix(cm, class_names)
 
 # Save cm image and send to clearml
-plt.savefig("baseline_resnet_batch-128_confusion_matrix.png")
-image = Image.open("baseline_resnet_batch-128_confusion_matrix.png")
-logger.report_image("Confusion Matrix", "val", iteration=0, image=image)
+plt.savefig("baseline_mobilenet_confusion_matrix.png")
+image = Image.open("baseline_mobilenet_confusion_matrix.png")
+logger.report_image("MobileNet Confusion Matrix", "val", iteration=0, image=image)
 plt.close()
 
 
