@@ -9,17 +9,11 @@ from clearml import Task, Dataset
 from src.utils import get_model, plot_confusion_matrix
 
 # Task init
-task = Task.init(
-    project_name='pizza_binary_classification',
-    task_name='hpo_train_task_v4',
-    output_uri=True,
-    repo='https://github.com/NoratanS/pizza_binary_classification.git',
-    branch='main',
-    script='src/hpo_task.py',
-    working_directory='.'
-)
+task = Task.init(project_name='pizza_binary_classification', task_name='hpo_train_task_v7', output_uri=True)
 task.set_task_type(Task.TaskTypes.training)
-task.set_script(__file__)
+task.set_script(entry_point='src/hpo_task.py', working_dir='.')
+task.set_repo('https://github.com/NoratanS/pizza_binary_classification.git', 'main')
+
 
 logger = task.get_logger()
 
@@ -28,17 +22,17 @@ params = {
     'network': 'mobilenet',
     'img_size': 128,
     'batch_size': 16,
-    'epochs': 20,
+    'epochs': 25,
     'use_pretrained': True,
     'freeze_base': True,
     'use_dropout': False,
     'dropout_rate': 0.0,
-    'use_augmentation': False,
+    'use_augmentation': True,
 }
 task.connect(params)
 
 # Dataset
-data = Dataset.get(dataset_id='c653d71c5fc64dc4965e09c442b2bae3').get_local_copy()
+data = Dataset.get(dataset_id='1238e9ba7b3946898a3cf360607f2462').get_local_copy()
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     data,
